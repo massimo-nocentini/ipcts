@@ -1,0 +1,132 @@
+
+\chapter{Introduction}
+
+Consider the following Haskell definition for the \emph{constant}
+stream of ones:
+
+\inputminted[
+    mathescape,
+    %linenos,
+    %numbersep=5pt,
+    %gobble=2,
+    %frame=lines,
+    %framesep=2mm,
+    breaklines,
+    firstline=14,
+    lastline=14
+    ]{haskell}{chapters/code/COR.hs}
+
+The very first one can be taken by definition directly; on the other
+hand, asking for the second and third ones need one and two unfolding steps.
+Let $\triangleq$ be the relation that allows us to do the unfolding of an equation:
+
+\begin{minted}[escapeinside=||]{haskell}
+    ones = 1 : ones 
+         = 1 : 1 : ones
+         = 1 : 1 : 1 : ones
+\end{minted}
+
+Now consider the stream of natural numbers:
+\inputminted[
+    mathescape,
+    %linenos,
+    %numbersep=5pt,
+    %gobble=2,
+    %frame=lines,
+    %framesep=2mm,
+    breaklines,
+    firstline=16,
+    lastline=16
+    ]{haskell}{chapters/code/COR.hs}
+
+Taking the first natural, namely $0$, can be done from the definition directly.
+Taking the second natural number, namely $1$, needs one unfolding step, according
+the definition of function \mintinline{haskell}|map|:
+\begin{minted}{haskell}
+    nats = 0 : map (+1) nats 
+         = 0 : map (+1) (0 : map (+1) nats)
+         = 0 : (+1) 0 : map (+1) (map (+1) nats)
+         = 0 : 1 : map (+1) (map (+1) nats)
+\end{minted}
+Taking the third natural number, namely $2$, needs one more unfolding step:
+\begin{minted}[escapeinside=||]{haskell}
+         = 0 : 1 : map (+1) (map (+1) (0 : map (+1) nats))
+         = 0 : 1 : map (+1) ((+1) 0 : map (+1) (map (+1) nats))
+         = 0 : 1 : map (+1) (1 : map (+1) (map (+1) nats))
+         = 0 : 1 : (+1) 1 : map (+1) (map (+1) (map (+1) nats))
+         = 0 : 1 : 2 : map (+1) (map (+1) (map (+1) nats))
+\end{minted}
+Again, taking the fourth natural number, namely $3$, proceed as before:
+\begin{minted}[escapeinside=||]{haskell}
+         = 0 : 1 : 2 : map (+1) (map (+1) (map (+1) (0 : map (+1) nats)))
+         = 0 : 1 : 2 : map (+1) (map (+1) ((+1) 0 : map (+1) (map (+1) nats)))
+         = 0 : 1 : 2 : map (+1) (map (+1) (1 : map (+1) (map (+1) nats)))
+         = 0 : 1 : 2 : map (+1) ((+1) 1 : map (+1) (map (+1) (map (+1) nats)))
+         = 0 : 1 : 2 : map (+1) (2 : map (+1) (map (+1) (map (+1) nats)))
+         = 0 : 1 : 2 : (+1) 2 : map (+1) (map (+1) (map (+1) (map (+1) nats)))
+         = 0 : 1 : 2 : 3 : map (+1) (map (+1) (map (+1) (map (+1) nats)))
+\end{minted}
+
+Now consider the stream of Fibonacci numbers:
+\inputminted[
+    mathescape,
+    %linenos,
+    %numbersep=5pt,
+    %gobble=2,
+    %frame=lines,
+    %framesep=2mm,
+    breaklines,
+    firstline=26,
+    lastline=26
+    ]{haskell}{chapters/code/COR.hs}
+
+\begin{minted}[escapeinside=||]{haskell}
+     theFibs = 0 : 1 : zipWith (+) theFibs (tail theFibs)
+             = 0 : 1 : zipWith (+) (0 : 1 : zipWith (+) theFibs (tail theFibs)) 
+                (tail (0 : 1 : zipWith (+) theFibs (tail theFibs)))
+             = 0 : 1 : zipWith (+) (0 : 1 : zipWith (+) theFibs (tail theFibs)) 
+                (1 : zipWith (+) theFibs (tail theFibs))
+             = 0 : 1 : (+) 0 1 : zipWith (+) (1 : zipWith (+) theFibs (tail theFibs)) 
+                (zipWith (+) theFibs (tail theFibs))
+             = 0 : 1 : 1 : zipWith (+) (1 : zipWith (+) theFibs (tail theFibs)) 
+                (zipWith (+) theFibs (tail theFibs))
+             = 0 : 1 : 1 : zipWith (+) (1 : zipWith (+) theFibs (tail theFibs)) 
+                (1 : zipWith (+) (1 : zipWith (+) theFibs (tail theFibs)) 
+                    (zipWith (+) theFibs (tail theFibs)))
+             = 0 : 1 : 1 : (+) 1 1 : zipWith (+) (zipWith (+) theFibs (tail theFibs)) 
+                (zipWith (+) (1 : zipWith (+) theFibs (tail theFibs)) 
+                    (zipWith (+) theFibs (tail theFibs)))
+             = 0 : 1 : 1 : 2 : zipWith (+) (zipWith (+) theFibs (tail theFibs)) 
+                (zipWith (+) (1 : zipWith (+) theFibs (tail theFibs)) 
+                    (zipWith (+) theFibs (tail theFibs)))
+             = 0 : 1 : 1 : 2 : zipWith (+) (zipWith (+) theFibs (tail theFibs)) 
+                (zipWith (+) (1 : zipWith (+) theFibs (tail theFibs)) 
+                    (1 : zipWith (+) (1 : zipWith (+) theFibs (tail theFibs)) 
+                        (zipWith (+) theFibs (tail theFibs))))
+             = 0 : 1 : 1 : 2 : zipWith (+) (zipWith (+) theFibs (tail theFibs)) 
+                ((+) 1 1 : zipWith (+) (zipWith (+) theFibs (tail theFibs)) 
+                    (zipWith (+) (1 : zipWith (+) theFibs (tail theFibs)) 
+                        (zipWith (+) theFibs (tail theFibs))))
+             = 0 : 1 : 1 : 2 : zipWith (+) (zipWith (+) theFibs (tail theFibs)) 
+                (2 : zipWith (+) (zipWith (+) theFibs (tail theFibs)) 
+                    (zipWith (+) (1 : zipWith (+) theFibs (tail theFibs)) 
+                        (zipWith (+) theFibs (tail theFibs))))
+             = 0 : 1 : 1 : 2 : zipWith (+) 
+                (1 : zipWith (+) (1 : zipWith (+) theFibs (tail theFibs)) 
+                    (zipWith (+) theFibs (tail theFibs)))
+                (2 : zipWith (+) (zipWith (+) theFibs (tail theFibs)) 
+                    (zipWith (+) (1 : zipWith (+) theFibs (tail theFibs)) 
+                        (zipWith (+) theFibs (tail theFibs))))
+             = 0 : 1 : 1 : 2 : (+) 1 2 : zipWith (+) 
+                (zipWith (+) (1 : zipWith (+) theFibs (tail theFibs)) 
+                    (zipWith (+) theFibs (tail theFibs)))
+                (zipWith (+) (zipWith (+) theFibs (tail theFibs)) 
+                    (zipWith (+) (1 : zipWith (+) theFibs (tail theFibs)) 
+                        (zipWith (+) theFibs (tail theFibs))))
+             = 0 : 1 : 1 : 2 : 3 : zipWith (+) 
+                (zipWith (+) (1 : zipWith (+) theFibs (tail theFibs)) 
+                    (zipWith (+) theFibs (tail theFibs)))
+                (zipWith (+) (zipWith (+) theFibs (tail theFibs)) 
+                    (zipWith (+) (1 : zipWith (+) theFibs (tail theFibs)) 
+                        (zipWith (+) theFibs (tail theFibs))))
+\end{minted}
