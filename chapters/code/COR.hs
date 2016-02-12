@@ -30,8 +30,7 @@ pr (x1:x2:x3:xs) = x1*x3 - x2*x2 : pr (x2:x3:xs)
 
 sieve :: [Integer] -> [Integer]
 sieve (0 : xs) = sieve xs
-sieve (n : xs) = n : sieve (mark xs 1 n)
-  where 
+sieve (n : xs) = n : sieve (mark xs 1 n) where 
   mark (y:ys) k m | k == m    =  0 : (mark ys  1    m)
                   | otherwise =  y : (mark ys (k+1) m)
 
