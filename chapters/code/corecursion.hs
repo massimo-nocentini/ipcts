@@ -1,4 +1,5 @@
 
+import Data.Array
 -- From: http://blog.sigfpe.com/2007/07/data-and-codata.html
 
 ------------------------------------------------------------------------
@@ -42,3 +43,47 @@ fib = 0 : 1 : zipWith (+) fib (tail fib)
 sumSoFar x [] = [x]
 sumSoFar x (y:ys) = x : sumSoFar (x+y) ys
 
+------------------------------------------------------------------------
+-- from `Building recursive data structures in Haskell` by Duncan Coutts
+------------------------------------------------------------------------
+
+repeat' :: a -> [a]
+repeat' x = xs where xs = x : xs
+
+-- doubly linked lists
+data DoublyLinked a = Nil | Node a (DoublyLinked a) (DoublyLinked a)
+
+instance Show a => Show (DoublyLinked a) where
+    show Nil = ""
+    show (Node a _ _) = show a
+
+next_node (Node _ _ n) = n
+prev_node (Node _ p _) = p
+
+-- write a function that promotes a list to a doubly linked one:
+to_doubly_linked :: [a] -> DoublyLinked a
+to_doubly_linked l = doubly_linked l Nil
+
+doubly_linked [] _ = Nil
+--doubly_linked (x:xs) prev = Node x prev (doubly_linked xs <>)
+-- <> denotes the node we are actually building, namely:
+-- Node x prev (doubly_linked xs <>) itself! ...so name it!
+doubly_linked (x:xs) prev = node
+    where node = Node x prev (doubly_linked xs node)
+
+-- graphs with single out connection
+data SingleOutGraph a = SONode a (SingleOutGraph a)
+
+make_sograph :: [(a, Int)] -> Int -> SingleOutGraph a
+--make_sograph table root = ( ! root) . listArray (0, length table - 1) $ map (\(elem, i) -> SONode elem (<> ! i) table
+-- <> denotes a table that holds other SONodes and, therefore, holds the node we're 
+-- currently building with the lambda expression, so name such table:
+make_sograph table root = table' ! root 
+    where table' = listArray (0, length table - 1) $ map (\(elem, i) -> SONode elem (table' ! i)) table
+
+-- general graphs
+data GeneralGraph a = GNode a [GeneralGraph a]
+
+make_ggraph :: [(a, [Int])] -> Int -> GeneralGraph a
+make_ggraph table root = table' ! root 
+    where table' = listArray (0, length table - 1) $ map (\(elem, is) -> GNode elem (map (table' !) is)) table

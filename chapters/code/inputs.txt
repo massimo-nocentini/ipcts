@@ -1,0 +1,4 @@
+
+take 10 (repeat' 3) -- [3,3,3,3,3,3,3,3,3,3]
+let doubly = to_doubly_linked [1..] -- <nothing>
+(next_node . prev_node . next_node . next_node) doubly -- => 3
