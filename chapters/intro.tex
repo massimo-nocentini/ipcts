@@ -28,6 +28,12 @@ ones = 1 : ones
      = 1 : 1 : 1 : ones
 \end{minted}
 
+Have a check:
+\begin{minted}[escapeinside=||]{haskell}
+*COR> take 20 theOnes 
+[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+\end{minted}
+
 \section{nats}
 
 Now consider the stream of natural numbers:
@@ -69,6 +75,12 @@ Again, taking the fourth natural number, namely $3$, proceed as before:
      = 0 : 1 : 2 : map (+1) (2 : map (+1) (map (+1) (map (+1) nats)))
      = 0 : 1 : 2 : (+1) 2 : map (+1) (map (+1) (map (+1) (map (+1) nats)))
      = 0 : 1 : 2 : 3 : map (+1) (map (+1) (map (+1) (map (+1) nats)))
+\end{minted}
+
+Have a check:
+\begin{minted}[escapeinside=||]{haskell}
+*COR> take 20 theNats
+[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19]
 \end{minted}
 
 \section{theFibs}
@@ -137,7 +149,16 @@ Now consider the stream of Fibonacci numbers:
                     (zipWith (+) theFibs (tail theFibs))))
 \end{minted}
 
+Have a check:
+\begin{minted}[escapeinside=||]{haskell}
+*COR> take 20 theFibs 
+[0,1,1,2,3,5,8,13,21,34,55,89,144,233,377,610,987,1597,2584,4181]
+\end{minted}
+
+
 \section{Eratosthenes' sieve}
+
+\subsection{A solution using an helper \emph{marking} function}
 
 Now consider a first version of Eratosthenes' sieve:
 \inputminted[
@@ -314,3 +335,103 @@ sieve (2 : [3..]) = 2 : 3 : 5 : 7 :
             = 0 : (mark (mark (mark (mark (mark [13..] 1 2) 1 3) 3 5) 6 7) (1+1) 11)
             = 0 : (mark (mark (mark (mark (mark [13..] 1 2) 1 3) 3 5) 6 7) 2 11)
 \end{minted}
+
+\subsection{A solution using filtering}
+
+The following is another implementation of the Eratosthenes' sieve
+which uses filtering:
+\inputminted[
+    mathescape,
+    %linenos,
+    %numbersep=5pt,
+    %gobble=2,
+    %frame=lines,
+    %framesep=2mm,
+    breaklines,
+    firstline=37,
+    lastline=38
+    ]{haskell}{chapters/code/COR.hs}
+
+\section{Doubly linked lists and graphs}
+
+\subsection{Doubly linked lists}
+
+The following chunk of code shows how to promote an infinite list
+to a doubly linked one:
+\inputminted[
+    mathescape,
+    %linenos,
+    %numbersep=5pt,
+    %gobble=2,
+    %frame=lines,
+    %framesep=2mm,
+    breaklines,
+    firstline=53,
+    lastline=72
+    ]{haskell}{chapters/code/corecursion.hs}
+
+Have a check:
+\begin{minted}[escapeinside=||]{haskell}
+*Main> let doubly = to_doubly_linked [1..]
+*Main> (next_node . prev_node . next_node . next_node) doubly
+3
+\end{minted}
+
+\subsection{Graphs}
+
+\subsubsection{Single outgoing connections}
+
+The following chunk of code shows how to build a graph
+structure consuming a table specification such that
+each node has exactly \emph{one} outgoing connection:
+\inputminted[
+    %mathescape,
+    %linenos,
+    %numbersep=5pt,
+    %gobble=2,
+    %frame=lines,
+    %framesep=2mm,
+    breaklines,
+    firstline=74,
+    lastline=82
+    ]{haskell}{chapters/code/corecursion.hs}
+A table specification looks like this:
+\begin{displaymath}
+    \begin{array}{c|c|c}
+        node & index & ref\\
+        \hline
+        a & 0 & 1\\
+        b & 1 & 0\\
+        c & 2 & 4\\
+        d & 3 & 4\\
+        e & 4 & 2\\
+    \end{array}
+\end{displaymath}
+
+\subsubsection{Arbitrary outgoing connections}
+
+The following chunk of code shows how to build a graph
+structure consuming a table specification:
+\inputminted[
+    %mathescape,
+    %linenos,
+    %numbersep=5pt,
+    %gobble=2,
+    %frame=lines,
+    %framesep=2mm,
+    breaklines,
+    firstline=84,
+    lastline=89
+    ]{haskell}{chapters/code/corecursion.hs}
+A table specification looks like this:
+\begin{displaymath}
+    \begin{array}{c|c|c}
+        node & index & refs\\
+        \hline
+        a & 0 & \lbrace 1, 4 \rbrace\\
+        b & 1 & \lbrace 1, 2, 3 \rbrace\\
+        c & 2 & \lbrace \rbrace\\
+        d & 3 & \lbrace 0, 4 \rbrace\\
+        e & 4 & \lbrace 3, 4 \rbrace\\
+    \end{array}
+\end{displaymath}
