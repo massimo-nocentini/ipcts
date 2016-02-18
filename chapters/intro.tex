@@ -1,0 +1,150 @@
+
+\chapter{Introduction}
+
+In this chapter we're going to introduce our work about
+understanding coinduction by means of examples; in particular,
+we provide Haskell programs, mostly one-liners, to show 
+\emph{coinductive} definitions. 
+
+Our work lies on three fundamentals articles by Hinze \cite{Hinze},
+Kozen and Silva \cite{Kozen:Silva} and, finally, by Jacobs and Rutten
+\cite{jacobs:rutten}: We start with an informal set of notions to 
+grasp the underlying idea of \emph{corecursion}, moving to a more 
+formal treatment in the last sections. 
+
+\section{Mottos and informal definitions}
+
+A quick search on the net, looking for coinduction and corecursion, 
+shows how such concepts aren't acquired and clearly understood as induction and
+recursion are; for this reason, many people explain them using mottos 
+and informal arguments. The following ones are collected by Micinski 
+in \cite{micinski}:
+\begin{quote}
+    \guillemotleft\,Induction is about finite data, 
+        co-induction is about infinite data.\guillemotright\\
+    \guillemotleft\,Inductive structures form least fixed points, 
+        and coinductive structures form greatest fixed points.\guillemotright\\
+    \guillemotleft\,Recursive functions break apart finite data, 
+        co-recursive functions build infinite data.\guillemotright
+\end{quote}
+Additionally, Micinski suggests a path toward understanding coinduction, which
+take us to:
+\begin{itemize}
+    \item study purely functional data structures that rely heavily on the 
+        use of laziness to guarantee their amortized bounds;
+    \item experiment with a theorem prover, Coq is adviced, that provide
+        built-in mechanism to state coinduction definitions;
+    \item finally, read a paper by Turner about \emph{total} functional
+        programming \cite{turner}.
+\end{itemize}
+
+Our personal experience about approaching coinduction from an informal
+point, shows that that strategy leads not too far. 
+Shortly, we come up with some implementations
+using a real programming language that actually allows us to manipulate
+infinite objects and, in parallel, coinductive and corecursive definitions. 
+Such language is Haskell, a \emph{lazy, purely functional} language.  
+This need of clarity, requires us to change our point of view;
+in particular, to study the paper by Kozen and Silva for what concern
+a formal treatment; and to the paper of Hinze for an implementative one.
+
+\section{A formal approach}
+
+A sound and complete formal argument about coinduction is given in the
+work of Jacobs and Rutten: they use a categorical approach, introducing
+functors, algebras over functors and, in turn, predicates over algebras 
+such as \emph{initial} and \emph{final}, describing them by diagrams 
+commonly used in category theory, showing homomorphisms and maps, 
+respectively.
+
+Sadly, we haven't a sufficient knowledge of category theory to understand
+such exposition. Therefore, we turn to practical ones in order to fulfill
+our seminar. According to Kozen and Silva, we believe their motto captures
+the basic idea underlying coinduction:
+\begin{quote}
+    \guillemotleft\,A property holds by induction if there is good reason for
+    it to hold; whereas a property holds by coinduction if there is no good
+    reason for it to \emph{not} hold.\guillemotright
+\end{quote}
+
+For any well founded relation $\mathcal{R}$, there exists a valid induction principle and
+we usually define $\mathcal{R}$ as the least set satisfying a set of inference rules.
+The following is an example where the set $List_{A}$ of \emph{finite} lists over an alphabet $A$,
+defined inductively as:
+\begin{displaymath}
+    {{}\over{nil \in List_{A}}} \quad \frac{a\in A \quad l\in List_{A}}{a:l \in List_{A}}
+\end{displaymath}
+Previous definition can be rewritten requiring $List_{A}$ to be the
+\emph{least} solution of the algebraic \autoref{eq:list:of:a}:
+\begin{equation}
+    List_{A} = nil + A\times List_{A}
+    \label{eq:list:of:a}
+\end{equation}
+Both definitions allows us to \emph{uniquely} define functions with type $List_{A} \rightarrow B$,
+for some type $B$, by \emph{structural induction} on the constructors $nil$ and $:$ (namely $cons$). 
+The following are equations defining functions $length$ and $concat$, respectively:
+\begin{displaymath}
+    \begin{array}{c}
+        length\,nil = 0 \\
+        length\,(a:l) = 1 + length\,l
+    \end{array}
+    \quad\quad
+    \begin{array}{c}
+        concat\,nil\,l = l\\
+        concat\,(a:l_{1})\,l_{2} = a:concat\,l_{1}\,l_{2}
+    \end{array}
+\end{displaymath}
+By structural induction, it is possible to prove theorems such as:
+\begin{displaymath}
+    length(concat\,l_{1}\,l_{2}) = length(l_{1}) + length(l_{2})
+\end{displaymath}
+
+On the other hand, coinduction principle is used to prove theorems about
+coinductive terms, such as infinite streams and trees; generally speaking,
+sets comprising such terms can be defined to be \emph{greatest} solutions
+of \autoref{eq:list:of:a}. Using the Haskell programming language, we can
+define the coinductive datatype $Stream\,a$, for some type $a$, as follows:
+\inputminted[
+    mathescape,
+    %linenos,
+    %numbersep=5pt,
+    %gobble=2,
+    %frame=lines,
+    %framesep=2mm,
+    breaklines,
+    firstline=91,
+    lastline=91
+    ]{haskell}{chapters/code/corecursion.hs}
+where $hd$ and $tl$ are \emph{destructors}: in order to understand why
+each coinductive definition is equipped with them it is necessary to
+see type $Stream\,a$ as a coalgebra for the functor $F$ defined as
+$F (Stream\,a) = a\times Stream\,a$, where $a$ is a type. 
+All such coalgebras have a structure map $(obs, cont)$,
+where $obs: Stream\,a \rightarrow a$ and $cont: Stream\,a \rightarrow Stream\,a$,
+in this case $obs = hd$ and $cont = tl$, respectively.
+
+Kozen and Silva shows, as their first example, how the \emph{lexicographic} order
+on streams can be characterized coinductively and, being of theoretical interest,
+we report a short summary.
+
+Let $a$ be a type and $\leq$ be an order relation over it. The ordering $\leq_{lex}$
+on $Stream\,a$ is defined to be the \emph{maximum} relation $R\subseteq a\times\,a$ 
+such that provided $\rho\,R\,\tau$ holds, then:
+\begin{itemize}
+    \item $hd\,\rho\leq\,hd\,\tau$ 
+    \item $hd\,\rho=\,hd\,\tau \rightarrow (tl\,\rho)\,R\,(tl\,\tau)$ 
+\end{itemize}
+Ordering $\leq_{lex}$ is required to be the maximum relation since if 
+$\lbrace R_{i}\rbrace$ is a collection of relations, each satisfying the above
+property, also $\bigcup_{i}\lbrace\,R_{i}\rbrace$ does; therefore, let $\leq_{lex}$
+be such union. 
+
+
+
+
+
+
+
+
+
+

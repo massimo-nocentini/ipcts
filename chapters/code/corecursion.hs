@@ -89,7 +89,7 @@ make_ggraph table root = table' ! root
     where table' = listArray (0, length table - 1) $ map (\(elem, is) -> GNode elem (map (table' !) is)) table
 
 -- streams
-data Stream a = Cons {head :: a, rest :: Stream a}
+data Stream a = Cons {hd :: a, tl :: Stream a}
 
 infixr 5 <<=
 (<<=) :: a -> Stream a -> Stream a
