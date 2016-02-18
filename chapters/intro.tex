@@ -137,7 +137,13 @@ such that provided $\rho\,R\,\tau$ holds, then:
 Ordering $\leq_{lex}$ is required to be the maximum relation since if 
 $\lbrace R_{i}\rbrace$ is a collection of relations, each satisfying the above
 property, also $\bigcup_{i}\lbrace\,R_{i}\rbrace$ does; therefore, let $\leq_{lex}$
-be such union. 
+be such union. It is possible to look at $\leq_{lex}$ as the greatest fixed point $R$
+of functional $T_{\leq_{lex}}$:
+\begin{displaymath}
+    T_{\leq_{lex}}\,R = \lbrace (\rho,\tau) : hd\,\rho \leq\,hd\,\tau\wedge\,
+        hd\,\rho=\,hd\,\tau\rightarrow\,(tl\,\rho) R (tl\,\tau) \rbrace
+\end{displaymath}
+formally, $\leq_{lex} = \nu R. T_{\leq_{lex}}\,R$.
 
 
 
