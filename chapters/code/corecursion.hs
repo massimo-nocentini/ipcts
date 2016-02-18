@@ -87,3 +87,14 @@ data GeneralGraph a = GNode a [GeneralGraph a]
 make_ggraph :: [(a, [Int])] -> Int -> GeneralGraph a
 make_ggraph table root = table' ! root 
     where table' = listArray (0, length table - 1) $ map (\(elem, is) -> GNode elem (map (table' !) is)) table
+
+-- streams
+data Stream a = Cons {head :: a, rest :: Stream a}
+
+infixr 5 <<=
+(<<=) :: a -> Stream a -> Stream a
+a <<= s = Cons a s
+
+turn :: Int -> [Int]
+turn 0 = []
+turn n = turn (n-1) ++ [n-1] ++ turn (n-1)
