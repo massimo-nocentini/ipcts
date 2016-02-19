@@ -50,6 +50,8 @@ a formal treatment; and to the paper of Hinze for an implementative one.
 
 \section{A formal approach}
 
+\subsection{Kozen and Silva's work}
+
 A sound and complete formal argument about coinduction is given in the
 work of Jacobs and Rutten: they use a categorical approach, introducing
 functors, algebras over functors and, in turn, predicates over algebras 
@@ -145,8 +147,82 @@ of functional $T_{\leq_{lex}}$:
 \end{displaymath}
 formally, $\leq_{lex} = \nu R. T_{\leq_{lex}}\,R$.
 
+\subsection{Hinze's work}
 
+Hinze, on the other hand, focuses on \emph{streams} and, first, provides a coinductive
+datatype for them; second, implements operations as corecursive programs; finally,
+proofs theorems using coinduction. The main concept of his paper, however, is that
+applying some restrictions on Haskell equations defined on streams, allows them
+to have \emph{unique solutions}; as a result, Hinze can perform equational
+reasoning in a ``coworld'' of terms. In his words:
+\begin{quote}
+One has to be a bit careful in formulating a recursion equation 
+basically avoiding that the sequence
+defined swallows its own tail. However, if this care is exercised,
+the equation even possesses a unique solution, a fact that is not
+very widely appreciated. Uniqueness can be exploited to prove that
+two streams are equal: if they satisfy the same recursion equation,
+then they are!
+\end{quote}
+Let $s$ be a stream we would like to define, then the following are 
+two counter-examples for restrictions respect to the stated property:
+\begin{minted}[escapeinside=||]{haskell}
+s = tail s
+\end{minted}
+and:
+\begin{minted}[escapeinside=||]{haskell}
+s = Cons (head s) (tail s)
+\end{minted}
+This is so because both of them have an infinite number of solutions:
+every \emph{constant} stream satisfies the former, \emph{every} 
+stream satisfies the latter, also called \emph{extensionality}
+property. 
 
+The property requested by Hinze can be formalized as:
+\begin{minted}[escapeinside=||]{haskell}
+x :: Stream a = (h :: a) |$\prec$| (t|$_{x}$| :: Stream a)
+\end{minted}
+where $x$ is a stream, $h$ is a constant, $t_{x}$ is a term,
+namely an expression, possibly containing $s$ and $\prec$ is
+a stream constructor; 
+finally, neither $h$ nor $t_{x}$ could containg either $head\,x$ or $tail\,x$.
+In parallel, a similar property can be stated for functions over streams:
+\begin{minted}[escapeinside=||]{haskell}
+x x|$_{0}$| |\ldots| x|$_{n}$| :: Stream a -> |\ldots| -> Stream a -> Stream a = 
+    (h|$_{x_{0},\ldots,x_{n}}$| :: a) |$\prec$| (t|$_{x,x_{0},\ldots,x_{n}}$| :: Stream a)
+\end{minted}
+under the restriction that in term $t_{x,x_{0},\ldots,x_{n}}$ cannot be evaluated neither $head$
+not $tail$ of any recursive call of function $x$.
+
+According to Hinze, such restrictions on equations over streams allows them
+to have unique solutions. Let $\phi$ with type $Stream_{a} \rightarrow Stream_{a}$ 
+be a function that produces a term of type $Stream_{a}$, therefore it is possible
+to abstract the first of above equations with the following one:
+\begin{minted}[escapeinside=||]{haskell}
+s = |$\phi$| s
+\end{minted}
+such that it is admissible. So, it has a \emph{unique} solution, denoted by $fix\,\phi$,
+satisfying the following relation:
+\begin{minted}[escapeinside=||]{haskell}
+fix |$\phi$| = s |$\leftrightarrow$| |$\phi$| s = s
+\end{minted}
+from left to right it says that $fix\,\phi$ is a solution
+of $\phi\,s = s$; from right to left it says that any solution
+to $\phi\,s = s$ equals $fix\,\phi$.
+
+We finish with a proof using above concepts: we want to show that
+a \emph{constant} stream $c$, such that $c = tail\,c$, has the form $repeat\,k$, for some term $k$:
+\begin{minted}[escapeinside=||]{haskell}
+c   = head c |$\prec$| tail c   |\text{by extensionality}|
+    = head c |$\prec$| c        c |\text{is constant}|
+\end{minted}
+so $c$ equals the unique solution of $x = head\,c\prec\,x$, 
+where $\phi\,x = head\,c\prec\,x$. Therefore $c$ has to be
+$repeat(head\,c)$, by definition of $repeat$ (in particular 
+look at the $where$ clause):
+\begin{minted}[escapeinside=||]{haskell}
+repeat a = s where s = a |$\prec$| s
+\end{minted}
 
 
 
