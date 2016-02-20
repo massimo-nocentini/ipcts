@@ -32,10 +32,10 @@ take us to:
 \begin{itemize}
     \item study purely functional data structures that rely heavily on the 
         use of laziness to guarantee their amortized bounds;
-    \item experiment with a theorem prover, Coq is adviced, that provide
+    \item experiment with a theorem prover, preferably Coq, that provide
         built-in mechanism to state coinduction definitions;
-    \item finally, read a paper by Turner about \emph{total} functional
-        programming \cite{turner}.
+    \item finally, read Turner's paper \cite{turner} about \emph{total} functional
+        programming.
 \end{itemize}
 
 Our personal experience about approaching coinduction from an informal
@@ -45,8 +45,8 @@ using a real programming language that actually allows us to manipulate
 infinite objects and, in parallel, coinductive and corecursive definitions. 
 Such language is Haskell, a \emph{lazy, purely functional} language.  
 This need of clarity, requires us to change our point of view;
-in particular, to study the paper by Kozen and Silva for what concern
-a formal treatment; and to the paper of Hinze for an implementative one.
+in particular, we study the paper by Kozen and Silva for what concern
+a formal treatment and the paper by Hinze for an implementative one.
 
 \section{A formal approach}
 
@@ -65,14 +65,14 @@ our seminar. According to Kozen and Silva, we believe their motto captures
 the basic idea underlying coinduction:
 \begin{quote}
     \guillemotleft\,A property holds by induction if there is good reason for
-    it to hold; whereas a property holds by coinduction if there is no good
+    it to hold; whereas, a property holds by coinduction if there is no good
     reason for it to \emph{not} hold.\guillemotright
 \end{quote}
 
 For any well founded relation $\mathcal{R}$, there exists a valid induction principle and
-we usually define $\mathcal{R}$ as the least set satisfying a set of inference rules.
+we usually define $\mathcal{R}$ as the \emph{least} set satisfying a set of inference rules.
 The following is an example where the set $List_{A}$ of \emph{finite} lists over an alphabet $A$,
-defined inductively as:
+is defined inductively:
 \begin{displaymath}
     {{}\over{nil \in List_{A}}} \quad \frac{a\in A \quad l\in List_{A}}{a:l \in List_{A}}
 \end{displaymath}
@@ -85,27 +85,23 @@ Previous definition can be rewritten requiring $List_{A}$ to be the
 Both definitions allows us to \emph{uniquely} define functions with type $List_{A} \rightarrow B$,
 for some type $B$, by \emph{structural induction} on the constructors $nil$ and $:$ (namely $cons$). 
 The following are equations defining functions $length$ and $concat$, respectively:
-\begin{displaymath}
-    \begin{array}{c}
-        length\,nil = 0 \\
-        length\,(a:l) = 1 + length\,l
-    \end{array}
-    \quad\quad
-    \begin{array}{c}
-        concat\,nil\,l = l\\
-        concat\,(a:l_{1})\,l_{2} = a:concat\,l_{1}\,l_{2}
-    \end{array}
-\end{displaymath}
+\begin{minted}[escapeinside=||]{haskell}
+length nil = 0 
+length (a:l) = 1 + length l
+
+concat nil l = l
+concat (a:l|$_{1}$|) l|$_{2}$| = a : concat l|$_{1}$| l|$_{2}$|
+\end{minted}
 By structural induction, it is possible to prove theorems such as:
-\begin{displaymath}
-    length(concat\,l_{1}\,l_{2}) = length(l_{1}) + length(l_{2})
-\end{displaymath}
+\begin{minted}[escapeinside=||]{haskell}
+length (concat l|$_{1}$| l|$_{2}$|) = length l|$_{1}$| + length l|$_{2}$|
+\end{minted}
 
 On the other hand, coinduction principle is used to prove theorems about
 coinductive terms, such as infinite streams and trees; generally speaking,
 sets comprising such terms can be defined to be \emph{greatest} solutions
 of \autoref{eq:list:of:a}. Using the Haskell programming language, we can
-define the coinductive datatype $Stream\,a$, for some type $a$, as follows:
+define the coinductive datatype $Stream_{a}$, for some type $a$, as follows:
 \inputminted[
     mathescape,
     %linenos,
@@ -118,27 +114,27 @@ define the coinductive datatype $Stream\,a$, for some type $a$, as follows:
     lastline=91
     ]{haskell}{chapters/code/corecursion.hs}
 where $hd$ and $tl$ are \emph{destructors}: in order to understand why
-each coinductive definition is equipped with them it is necessary to
-see type $Stream\,a$ as a coalgebra for the functor $F$ defined as
-$F (Stream\,a) = a\times Stream\,a$, where $a$ is a type. 
-All such coalgebras have a structure map $(obs, cont)$,
-where $obs: Stream\,a \rightarrow a$ and $cont: Stream\,a \rightarrow Stream\,a$,
+each coinductive definition is equipped with them, it is necessary to
+see $Stream_{a}$ as a set and to define a functor $F$ defined as
+$F (Stream_{a}) = a\times Stream_{a}$, where $a$ is a set. 
+In this setting, $Stream_{a}$ is a coalgebra and has a structure map $(obs, cont)$,
+where $obs: Stream_{a} \rightarrow a$ and $cont: Stream_{a} \rightarrow Stream_{a}$,
 in this case $obs = hd$ and $cont = tl$, respectively.
 
 Kozen and Silva shows, as their first example, how the \emph{lexicographic} order
 on streams can be characterized coinductively and, being of theoretical interest,
 we report a short summary.
 
-Let $a$ be a type and $\leq$ be an order relation over it. The ordering $\leq_{lex}$
-on $Stream\,a$ is defined to be the \emph{maximum} relation $R\subseteq a\times\,a$ 
+Let $a$ be a set and $\leq$ be an order relation over it. The ordering $\leq_{lex}$
+on $Stream_{a}$ is defined to be the \emph{maximum} relation $R\subseteq a\times\,a$ 
 such that provided $\rho\,R\,\tau$ holds, then:
 \begin{itemize}
     \item $hd\,\rho\leq\,hd\,\tau$ 
     \item $hd\,\rho=\,hd\,\tau \rightarrow (tl\,\rho)\,R\,(tl\,\tau)$ 
 \end{itemize}
 Ordering $\leq_{lex}$ is required to be the maximum relation since if 
-$\lbrace R_{i}\rbrace$ is a collection of relations, each satisfying the above
-property, also $\bigcup_{i}\lbrace\,R_{i}\rbrace$ does; therefore, let $\leq_{lex}$
+$\lbrace R_{i}\rbrace_{i\in\mathbb{N}}$ is a collection of relations, each satisfying the above
+property, also $\bigcup_{i\in\mathbb{N}}\lbrace\,R_{i}\rbrace$ does; therefore, let $\leq_{lex}$
 be such union. It is possible to look at $\leq_{lex}$ as the greatest fixed point $R$
 of functional $T_{\leq_{lex}}$:
 \begin{displaymath}
@@ -149,20 +145,21 @@ formally, $\leq_{lex} = \nu R. T_{\leq_{lex}}\,R$.
 
 \subsection{Hinze's work}
 
-Hinze, on the other hand, focuses on \emph{streams} and, first, provides a coinductive
-datatype for them; second, implements operations as corecursive programs; finally,
-proofs theorems using coinduction. The main concept of his paper, however, is that
-applying some restrictions on Haskell equations defined on streams, allows them
+Hinze, on the other hand, focuses on \emph{streams} from an implementative 
+point of view and, first, provides a coinductive
+datatype for them; second, defines operations as corecursive programs; finally,
+proves theorems using coinduction. The main concept of his paper, however, is that
+applying some restrictions on Haskell equations involving streams, allows them
 to have \emph{unique solutions}; as a result, Hinze can perform equational
 reasoning in a ``coworld'' of terms. In his words:
 \begin{quote}
-One has to be a bit careful in formulating a recursion equation 
+\textit{One has to be a bit careful in formulating a recursion equation 
 basically avoiding that the sequence
 defined swallows its own tail. However, if this care is exercised,
 the equation even possesses a unique solution, a fact that is not
 very widely appreciated. Uniqueness can be exploited to prove that
 two streams are equal: if they satisfy the same recursion equation,
-then they are!
+then they are!}
 \end{quote}
 Let $s$ be a stream we would like to define, then the following are 
 two counter-examples for restrictions respect to the stated property:
@@ -178,14 +175,15 @@ every \emph{constant} stream satisfies the former, \emph{every}
 stream satisfies the latter, also called \emph{extensionality}
 property. 
 
-The property requested by Hinze can be formalized as:
+The property requested by Hinze can be abstracted as:
 \begin{minted}[escapeinside=||]{haskell}
 x :: Stream a = (h :: a) |$\prec$| (t|$_{x}$| :: Stream a)
 \end{minted}
 where $x$ is a stream, $h$ is a constant, $t_{x}$ is a term,
-namely an expression, possibly containing $s$ and $\prec$ is
-a stream constructor; 
-finally, neither $h$ nor $t_{x}$ could containg either $head\,x$ or $tail\,x$.
+namely an expression, possibly containing $x$ and $\prec$ is
+a stream constructor. 
+In particular, neither $h$ nor $t_{x}$ are allowed to contain occurrences of
+either $head\,x$ or $tail\,x$.
 In parallel, a similar property can be stated for functions over streams:
 \begin{minted}[escapeinside=||]{haskell}
 x x|$_{0}$| |\ldots| x|$_{n}$| :: Stream a -> |\ldots| -> Stream a -> Stream a = 
@@ -195,14 +193,14 @@ under the restriction that in term $t_{x,x_{0},\ldots,x_{n}}$ cannot be evaluate
 not $tail$ of any recursive call of function $x$.
 
 According to Hinze, such restrictions on equations over streams allows them
-to have unique solutions. Let $\phi$ with type $Stream_{a} \rightarrow Stream_{a}$ 
-be a function that produces a term of type $Stream_{a}$, therefore it is possible
+to have unique solutions. Let $\phi$ be a function with type $Stream_{a} \rightarrow Stream_{a}$ 
+that consumes and produces a term of type $Stream_{a}$, therefore it is possible
 to abstract the first of above equations with the following one:
 \begin{minted}[escapeinside=||]{haskell}
 s = |$\phi$| s
 \end{minted}
-such that it is admissible. So, it has a \emph{unique} solution, denoted by $fix\,\phi$,
-satisfying the following relation:
+If $\phi$ is admissible then it has a \emph{unique} solution, denoted by $fix\,\phi$,
+which satisfies the following relation, stated according fixed point definition:
 \begin{minted}[escapeinside=||]{haskell}
 fix |$\phi$| = s |$\leftrightarrow$| |$\phi$| s = s
 \end{minted}
@@ -214,16 +212,31 @@ We finish with a proof using above concepts: we want to show that
 a \emph{constant} stream $c$, such that $c = tail\,c$, has the form $repeat\,k$, for some term $k$:
 \begin{minted}[escapeinside=||]{haskell}
 c   = head c |$\prec$| tail c   |\text{by extensionality}|
-    = head c |$\prec$| c        c |\text{is constant}|
+    = head c |$\prec$| c        by assumption that c |\text{is a constant stream}|
 \end{minted}
 so $c$ equals the unique solution of $x = head\,c\prec\,x$, 
 where $\phi\,x = head\,c\prec\,x$. Therefore $c$ has to be
-$repeat(head\,c)$, by definition of $repeat$ (in particular 
-look at the $where$ clause):
+$repeat(head\,c)$, by definition of $repeat$ (instantiate $s$ with
+its definition, read \emph{right to left} in the following definition of
+function $repeat$):
 \begin{minted}[escapeinside=||]{haskell}
 repeat a = s where s = a |$\prec$| s
 \end{minted}
 
+\subsection{Corecursion in a language with strict evaluation}
+ 
+ Previous definitions makes sense in Haskell, but how is it possible
+ to state them in a language with \emph{strict} evaluation, such as 
+ Standard ML? Here is an answer:
+\inputminted[
+    mathescape,
+    %linenos,
+    %numbersep=5pt,
+    %gobble=2,
+    %frame=lines,
+    %framesep=2mm,
+    breaklines,
+    ]{sml}{chapters/code/chains.sml}
 
 
 
