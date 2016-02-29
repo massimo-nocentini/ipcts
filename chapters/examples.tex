@@ -2,6 +2,17 @@
 \chapter{Examples}
 
 The following sections has been adapted from \cite{doets:eijck}.
+We would like to point out that all derivations and equational 
+reasoning, which requires substitutions and terms unfoldings,
+have been done by us using a \emph{vanilla, paper and pencil} approach:
+no automatic tool has been used to build any derivation step.
+Although boring and error proning, this methodology allows us to
+understand that each derivation step, if properly performed,
+yield to \emph{valid} Haskell equations, therefore it is doubly useful:
+first, it is a way of building new equations using on-going derivation
+steps; second, it provides a checking mechanism for unfolding performed
+in derivation steps.
+
 
 \section{ones}
 
@@ -21,8 +32,7 @@ stream of ones:
     ]{haskell}{chapters/code/COR.hs}
 
 The very first one can be taken by definition directly; on the other
-hand, asking for the second and third ones need one and two unfolding steps.
-Let $\triangleq$ be the relation that allows us to do the unfolding of an equation:
+hand, asking for the second and third ones need one and two unfolding steps:
 
 \begin{minted}[escapeinside=||]{haskell}
 ones = 1 : ones 
@@ -85,6 +95,24 @@ Have a check:
 [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19]
 \end{minted}
 
+A very interesting thing to observe is that using one term on
+right hand sides within above derivations allows us to build
+\emph{valid} Haskell equations, although entire derivations
+\emph{cannot} be coded; this is another way to define the
+stream of natural numbers, using an on-going derivation step:
+\begin{minted}[escapeinside=||]{haskell}
+*COR> let nats = 0 : 1 : 2 : map (+1) ((+1) 1 : map (+1) (map (+1) (map (+1) nats)))
+*COR> take 20 nats 
+[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19]
+\end{minted}
+or the very last one:
+\begin{minted}[escapeinside=||]{haskell}
+*COR> let nats = 0 : 1 : 2 : 3 : map (+1) (map (+1) (map (+1) (map (+1) nats)))
+*COR> take 20 nats
+[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19]
+\end{minted}
+
+
 \section{theFibs}
 
 Now consider the stream of Fibonacci numbers:
@@ -99,7 +127,8 @@ Now consider the stream of Fibonacci numbers:
     firstline=26,
     lastline=26
     ]{haskell}{chapters/code/COR.hs}
-
+The following is a derivation that allows us to show how the first four
+Fibonacci numbers are computed, leaving the remaining stream unevaluated:
 \begin{minted}[escapeinside=||]{haskell}
  theFibs = 0 : 1 : zipWith (+) theFibs (tail theFibs)
          = 0 : 1 : zipWith (+) (0 : 1 : zipWith (+) theFibs (tail theFibs)) 
@@ -157,6 +186,15 @@ Have a check:
 [0,1,1,2,3,5,8,13,21,34,55,89,144,233,377,610,987,1597,2584,4181]
 \end{minted}
 
+Again, we can use every on-going step to define \emph{valid} Haskell
+equations, as the following one:
+\begin{minted}[escapeinside=||]{haskell}
+*COR> let theFibs' = 0 : 1 : (+) 0 1 : 
+        zipWith (+) (1 : zipWith (+) theFibs (tail theFibs))        
+                    (zipWith (+) theFibs (tail theFibs))
+*COR> take 20 theFibs' 
+[0,1,1,2,3,5,8,13,21,34,55,89,144,233,377,610,987,1597,2584,4181]
+\end{minted}
 
 \section{Eratosthenes' sieve}
 
@@ -200,9 +238,11 @@ on \mintinline{haskell}|sieve (2 : [3..]) = 2 : ss where ss = sieve (mark [3..] 
 (we have introduced variable \mintinline{haskell}|ss| in order to emphasize
 that the value it is bound to \emph{is not} necessary for computing the first prime).
 
-Asking for the next prime, namely $3$, requires to actually evaluate
-\mintinline{haskell}|sieve (mark [3..] 1 2)|. By \mintinline{haskell}{sieve} definition we have
-to match \mintinline{haskell}{(mark [3..] 1 2)} to pattern \mintinline{haskell}{n : xs}, therefore we've to
+Asking for the next prime, namely $3$, requires to actually 
+evaluate\\\mintinline{haskell}|sieve (mark [3..] 1 2)|. 
+By \mintinline{haskell}{sieve} definition we have
+to match \mintinline{haskell}{(mark [3..] 1 2)} to pattern 
+\mintinline{haskell}{n : xs}, therefore we've to
 find \mintinline{haskell}{n}, leaving \mintinline{haskell}{xs} lazy evaluated:
 \begin{minted}{haskell}
 sieve (2 : [3..]) = 2 : sieve (3 : (mark [4..] 2 2)) 
@@ -338,6 +378,16 @@ sieve (2 : [3..]) = 2 : 3 : 5 : 7 :
             = 0 : (mark (mark (mark (mark (mark [13..] 1 2) 1 3) 3 5) 6 7) 2 11)
 \end{minted}
 
+Moreover, the derivation above allows us to build another version
+for function $sieve$, using \emph{higher-order recursion}:
+\begin{minted}[escapeinside=||]{haskell}
+sieve'' (0:ns) = sieve'' ns
+sieve'' (n:ns) = n : sieve'' (mark (mark (mark (mark (mark ns 1 2) 1 3) 1 5) 1 7) 1 11)
+    where mark (y:ys) k m    | k == m    =  0 : (mark ys  1    m)
+                             | otherwise =  y : (mark ys (k+1) m)
+\end{minted}
+which is extremely slow.
+
 \subsection{A solution using filtering}
 
 The following is another implementation of the Eratosthenes' sieve
@@ -364,6 +414,7 @@ See it in action:
 521,523,541]
 \end{minted}
 the same result denoted by \mintinline{haskell}|sieve|.
+
 
 \section{Doubly linked lists and graphs}
 

@@ -100,7 +100,8 @@ length (concat l|$_{1}$| l|$_{2}$|) = length l|$_{1}$| + length l|$_{2}$|
 On the other hand, coinduction principle is used to prove theorems about
 coinductive terms, such as infinite streams and trees; generally speaking,
 sets comprising such terms can be defined to be \emph{greatest} solutions
-of \autoref{eq:list:of:a}. Using the Haskell programming language, we can
+of equations similar to \autoref{eq:list:of:a}. 
+Using the Haskell programming language, we can
 define the coinductive datatype $Stream_{a}$, for some type $a$, as follows:
 \inputminted[
     mathescape,
@@ -126,7 +127,7 @@ on streams can be characterized coinductively and, being of theoretical interest
 we report a short summary.
 
 Let $a$ be a set and $\leq$ be an order relation over it. The ordering $\leq_{lex}$
-on $Stream_{a}$ is defined to be the \emph{maximum} relation $R\subseteq a\times\,a$ 
+on $Stream_{a}$ is defined to be the \emph{maximum} relation $R\subseteq Stream_{a}\times\,Stream_{a}$ 
 such that provided $\rho\,R\,\tau$ holds, then:
 \begin{itemize}
     \item $hd\,\rho\leq\,hd\,\tau$ 
@@ -209,7 +210,8 @@ of $\phi\,s = s$; from right to left it says that any solution
 to $\phi\,s = s$ equals $fix\,\phi$.
 
 We finish with a proof using above concepts: we want to show that
-a \emph{constant} stream $c$, such that $c = tail\,c$, has the form $repeat\,k$, for some term $k$:
+a \emph{constant} stream $c$, such that $c = tail\,c$, has the form $repeat\,k$, 
+where $k = head c$:
 \begin{minted}[escapeinside=||]{haskell}
 c   = head c |$\prec$| tail c   |\text{by extensionality}|
     = head c |$\prec$| c        by assumption that c |\text{is a constant stream}|
@@ -222,6 +224,15 @@ function $repeat$):
 \begin{minted}[escapeinside=||]{haskell}
 repeat a = s where s = a |$\prec$| s
 \end{minted}
+instantiate it for the sake of clarity:
+\begin{minted}[escapeinside=||]{haskell}
+repeat (head c) = s where s = head c |$\prec$| s
+\end{minted}
+therefore:
+\begin{minted}[escapeinside=||]{haskell}
+repeat (head c) = head c |$\prec$| repeat (head c)
+\end{minted}
+as required.
 
 \subsection{Corecursion in a language with strict evaluation}
  
